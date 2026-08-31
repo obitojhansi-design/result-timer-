@@ -6,7 +6,7 @@
     <title>⚡ Result Release – ECG + Audio Countdown</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800;900&display=swap" rel="stylesheet" />
     <style>
-        /* ── Reset & Base ── */
+        /* ── All styles remain exactly the same as before ── */
         *,
         *::before,
         *::after {
@@ -28,7 +28,6 @@
             margin: 0;
         }
 
-        /* ── Scanline CRT overlay ── */
         body::after {
             content: '';
             position: fixed;
@@ -52,7 +51,6 @@
             }
         }
 
-        /* ── Intense Gradient Background ── */
         body::before {
             content: '';
             position: fixed;
@@ -77,7 +75,6 @@
             }
         }
 
-        /* ── Floating Tension Orbs ── */
         .orb {
             position: fixed;
             border-radius: 50%;
@@ -126,7 +123,6 @@
             }
         }
 
-        /* ── Sonar Ring ── */
         .sonar {
             position: fixed;
             top: 50%;
@@ -161,7 +157,6 @@
             }
         }
 
-        /* ── Main Card ── */
         .card {
             position: relative;
             z-index: 1;
@@ -214,7 +209,6 @@
             }
         }
 
-        /* ── Badge ── */
         .badge {
             display: inline-block;
             padding: 0.4rem 1.6rem;
@@ -241,7 +235,6 @@
             }
         }
 
-        /* ── Headline ── */
         h1 {
             font-size: clamp(2rem, 5vw, 3.4rem);
             font-weight: 900;
@@ -271,7 +264,6 @@
             }
         }
 
-        /* ── Tagline ── */
         .tension-tagline {
             font-size: clamp(0.8rem, 1.2vw, 1rem);
             font-weight: 700;
@@ -311,7 +303,6 @@
             }
         }
 
-        /* ── ECG Container ── */
         .ecg-container {
             position: relative;
             width: 100%;
@@ -353,7 +344,6 @@
             text-shadow: 0 0 10px rgba(255, 0, 80, 0.3);
         }
 
-        /* ── Countdown Grid ── */
         .countdown {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -434,7 +424,6 @@
             color: #ff4d7a;
         }
 
-        /* ── Progress Bar ── */
         .progress-wrap {
             width: 100%;
             height: 4px;
@@ -465,7 +454,6 @@
             }
         }
 
-        /* ── Footer Info ── */
         .info {
             display: flex;
             align-items: center;
@@ -519,7 +507,6 @@
             }
         }
 
-        /* ── Expired State ── */
         .expired .number {
             color: #fbbf24 !important;
             text-shadow: 0 0 60px rgba(251, 191, 36, 0.3) !important;
@@ -535,41 +522,33 @@
             box-shadow: 0 0 20px #fbbf24 !important;
         }
 
-        /* ── Responsive ── */
         @media (max-width: 600px) {
             .card {
                 padding: 1.5rem 1rem;
                 border-radius: 2rem;
             }
-
             .countdown {
                 gap: 0.5rem;
             }
-
             .countdown-item {
                 padding: 0.8rem 0.15rem;
                 border-radius: 1rem;
             }
-
             .countdown-item .number {
                 font-size: clamp(2.2rem, 12vw, 3.4rem);
             }
-
             .tension-tagline {
                 font-size: 0.65rem;
                 padding: 0.2rem 1rem;
                 min-height: 2rem;
             }
-
             .badge {
                 font-size: 0.55rem;
                 padding: 0.2rem 1rem;
             }
-
             h1 {
                 font-size: clamp(1.6rem, 7vw, 2.4rem);
             }
-
             .info {
                 font-size: 0.6rem;
                 gap: 0.4rem;
@@ -578,7 +557,6 @@
                 font-size: 0.55rem;
                 padding: 0.2rem 0.8rem;
             }
-
             .ecg-container {
                 padding: 0.25rem;
             }
@@ -604,7 +582,6 @@
             }
         }
 
-        /* ── Accessibility ── */
         .sr-only {
             position: absolute;
             width: 1px;
@@ -624,8 +601,6 @@
     <div class="orb orb--1" aria-hidden="true"></div>
     <div class="orb orb--2" aria-hidden="true"></div>
     <div class="orb orb--3" aria-hidden="true"></div>
-
-    <!-- Sonar Rings -->
     <div class="sonar" aria-hidden="true"></div>
 
     <!-- Main Card -->
@@ -636,13 +611,11 @@
             Results <span>Releasing</span>
         </h1>
 
-        <!-- Dynamic Tension Tagline -->
         <div class="tension-tagline" id="tagline">
             <span class="blinker" aria-hidden="true"></span>
             <span id="taglineText">INITIALIZING...</span>
         </div>
 
-        <!-- ECG Track -->
         <div class="ecg-container">
             <canvas id="ecgCanvas" width="800" height="150"></canvas>
             <div class="ecg-overlay">
@@ -651,7 +624,6 @@
             </div>
         </div>
 
-        <!-- Countdown Grid -->
         <div class="countdown" id="countdown" role="timer" aria-live="polite">
             <div class="countdown-item" id="itemDays">
                 <span class="number" id="days">00</span>
@@ -671,12 +643,10 @@
             </div>
         </div>
 
-        <!-- Progress Bar -->
         <div class="progress-wrap" aria-hidden="true">
             <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
         </div>
 
-        <!-- Footer Info -->
         <div class="info">
             <span class="target-date" id="fullDateDisplay">🗓️ 2 September 2026 · 10:00 AM</span>
             <span class="status" id="statusBadge">
@@ -763,7 +733,6 @@
                 if (totalDuration > 0) {
                     progress = Math.min(1, Math.max(0, (totalDuration - elapsed) / totalDuration));
                 }
-                // Map progress 0->1 to BPM 60->180
                 const bpm = Math.round(60 + progress * 120);
                 return Math.min(200, bpm);
             }
@@ -805,7 +774,6 @@
 
                 const remaining = getTimeRemaining();
                 if (remaining.total <= 0) {
-                    // Flatline
                     ctx.clearRect(0, 0, W, H);
                     ctx.beginPath();
                     ctx.moveTo(0, H / 2);
@@ -820,7 +788,6 @@
                     return;
                 }
 
-                // Update phase
                 const phaseSpeed = bpm / 60;
                 accumulatedPhase += delta * phaseSpeed;
                 if (accumulatedPhase > 1) accumulatedPhase -= Math.floor(accumulatedPhase);
@@ -829,10 +796,8 @@
                 ecgData.push(y);
                 ecgData.shift();
 
-                // Draw
                 ctx.clearRect(0, 0, W, H);
 
-                // Subtle grid
                 ctx.strokeStyle = 'rgba(255,255,255,0.03)';
                 ctx.lineWidth = 0.5;
                 for (let i = 0; i < W; i += 40) {
@@ -848,7 +813,6 @@
                     ctx.stroke();
                 }
 
-                // ECG line
                 ctx.beginPath();
                 ctx.strokeStyle = '#ff0040';
                 ctx.lineWidth = 2.5;
@@ -864,7 +828,6 @@
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                // R-peak flash
                 const rPhase = 0.15;
                 if (Math.abs(accumulatedPhase - rPhase) < 0.02) {
                     ctx.fillStyle = 'rgba(255, 0, 64, 0.05)';
@@ -874,56 +837,48 @@
                 requestAnimationFrame(drawECG);
             }
 
-            // ─── Audio Engine (external files, autoplay) ───
-            // ─── ✏️ CHANGE THESE PATHS TO YOUR OWN AUDIO FILES ───
-            const TICK_SOUND = 'time.mp3'; // e.g., "time.mp3" or "tick.wav"
-            const HEART_SOUND = 'heart.mp3'; // e.g., "heart.mp3" – keep at original 180 BPM
-            // ─────────────────────────────────────────────────────
+            // ─── Audio Engine ───
+            const TICK_SOUND = 'time.mp3';
+            const HEART_SOUND = 'heart.mp3';
 
             let isAudioStarted = false;
             let tickInterval = null;
             let isExpired = false;
 
-            // Preload audio objects
             const tickAudio = new Audio(TICK_SOUND);
             const heartAudio = new Audio(HEART_SOUND);
             tickAudio.preload = 'auto';
             heartAudio.preload = 'auto';
-            heartAudio.loop = true; // loop continuously at its original tempo
-
-            // ─── Set default sound levels: Heart at MAX, Tick at 60% ───
+            heartAudio.loop = true;
             tickAudio.volume = 0.6;
-            heartAudio.volume = 1.0; // Maximum loudness
+            heartAudio.volume = 1.0;
 
-            // ─── Attempt to autoplay ───
-            function startAudio() {
-                if (isAudioStarted) return;
-                // Try playing both
-                try {
-                    const heartPromise = heartAudio.play();
-                    if (heartPromise !== undefined) {
-                        heartPromise.catch(() => {});
-                    }
-                    const tickPromise = tickAudio.play(); // not looped, but we'll start it later
-                    if (tickPromise !== undefined) {
-                        tickPromise.catch(() => {});
-                    }
-                } catch (e) {}
-
-                isAudioStarted = true;
-                // Start tick loop (plays every second)
-                if (tickInterval) clearInterval(tickInterval);
-                tickInterval = setInterval(playTick, 1000);
-            }
-
-            // Function to play tick sound (once per second)
             function playTick() {
                 if (!isAudioStarted || isExpired) return;
                 try {
                     const clone = tickAudio.cloneNode();
                     clone.volume = tickAudio.volume;
                     clone.play().catch(() => {});
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
+            }
+
+            function startTickLoop() {
+                if (tickInterval) clearInterval(tickInterval);
+                tickInterval = setInterval(playTick, 1000);
+            }
+
+            // ─── Start audio (called on user interaction) ───
+            function startAudio() {
+                if (isAudioStarted) return;
+                try {
+                    const heartPromise = heartAudio.play();
+                    if (heartPromise !== undefined) heartPromise.catch(() => {});
+                    const tickPromise = tickAudio.play();
+                    if (tickPromise !== undefined) tickPromise.catch(() => {});
+                } catch (e) {}
+
+                isAudioStarted = true;
+                startTickLoop();
             }
 
             // ─── Timer Update ───
@@ -994,7 +949,6 @@
                     if (tickInterval) clearInterval(tickInterval);
                     try { heartAudio.pause(); } catch (e) {}
 
-                    // Redirect to number.html after a short delay (1 second)
                     setTimeout(() => {
                         window.location.href = 'number.html';
                     }, 1000);
@@ -1026,20 +980,25 @@
             // ─── Start ECG ───
             requestAnimationFrame(drawECG);
 
-            // ─── Auto‑start audio (with fallback on user interaction) ───
-            startAudio();
-            document.addEventListener('click', function startOnClick() {
-                if (!isAudioStarted) {
-                    startAudio();
+            // ─── Auto-start audio with fallback ───
+            // Try to autoplay
+            try {
+                const autoPlayPromise = heartAudio.play();
+                if (autoPlayPromise !== undefined) {
+                    autoPlayPromise.then(() => {
+                        isAudioStarted = true;
+                        startTickLoop();
+                    }).catch(() => {
+                        // Autoplay blocked – start on first user interaction
+                        document.addEventListener('click', startAudio, { once: true });
+                        document.addEventListener('touchstart', startAudio, { once: true });
+                    });
                 }
-                document.removeEventListener('click', startOnClick);
-            }, { once: true });
-            document.addEventListener('touchstart', function startOnTouch() {
-                if (!isAudioStarted) {
-                    startAudio();
-                }
-                document.removeEventListener('touchstart', startOnTouch);
-            }, { once: true });
+            } catch (e) {
+                // Fallback: start on interaction
+                document.addEventListener('click', startAudio, { once: true });
+                document.addEventListener('touchstart', startAudio, { once: true });
+            }
 
             console.log(`⚡ Tension Countdown with external audio & ECG. Target: ${TARGET.toString()}`);
             console.log(`📁 Place your audio files: "${TICK_SOUND}" and "${HEART_SOUND}" in the same directory.`);
