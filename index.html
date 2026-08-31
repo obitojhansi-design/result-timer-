@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⚡ Result Release – ECG + Audio Countdown</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a080c;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* ── Scanline CRT overlay ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 0, 0, 0.03) 0px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    transparent 2px,
+                    transparent 6px);
+            animation: scanMove 8s linear infinite;
+        }
+
+        @keyframes scanMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 10px;
+            }
+        }
+
+        /* ── Intense Gradient Background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(255, 0, 80, 0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, rgba(150, 0, 255, 0.30) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 100%, rgba(255, 100, 0, 0.25) 0%, transparent 50%),
+                #0a080c;
+            animation: bgIntensity 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgIntensity {
+            0% {
+                opacity: 0.8;
+                filter: brightness(0.9);
+            }
+            100% {
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+        }
+
+        /* ── Floating Tension Orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+            animation: orbPulse 6s ease-in-out infinite alternate;
+        }
+        .orb--1 {
+            width: 500px;
+            height: 500px;
+            top: -200px;
+            left: -200px;
+            background: #ff0040;
+            animation-delay: 0s;
+        }
+        .orb--2 {
+            width: 400px;
+            height: 400px;
+            bottom: -150px;
+            right: -150px;
+            background: #7a00ff;
+            animation-delay: 2s;
+        }
+        .orb--3 {
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff5500;
+            opacity: 0.2;
+            animation-delay: 4s;
+            filter: blur(120px);
+        }
+
+        @keyframes orbPulse {
+            0% {
+                transform: scale(1) translate(0, 0);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1.3) translate(20px, -30px);
+                opacity: 0.6;
+            }
+        }
+
+        /* ── Sonar Ring ── */
+        .sonar {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100vmax;
+            height: 100vmax;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 0, 80, 0.05);
+            animation: sonarExpand 4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+        }
+
+        .sonar::after {
+            content: '';
+            position: absolute;
+            inset: 20%;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 50, 100, 0.03);
+            animation: sonarExpand 4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 1s;
+        }
+
+        @keyframes sonarExpand {
+            0% {
+                transform: scale(0.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ── Main Card ── */
+        .card {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            width: 100%;
+            background: rgba(10, 8, 12, 0.75);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-radius: 3rem;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 80, 0.15);
+            box-shadow:
+                0 0 60px rgba(255, 0, 80, 0.10),
+                0 30px 80px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            transition: box-shadow 0.3s ease, transform 0.1s ease;
+            animation: cardGlowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes cardGlowPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 40px rgba(255, 0, 80, 0.05), 0 30px 80px rgba(0, 0, 0, 0.8);
+            }
+            50% {
+                box-shadow: 0 0 80px rgba(255, 0, 80, 0.15), 0 30px 80px rgba(0, 0, 0, 0.9);
+            }
+        }
+
+        .card.shake-effect {
+            animation: shakeTension 0.15s ease-in-out 2;
+        }
+
+        @keyframes shakeTension {
+            0% {
+                transform: translate(0);
+            }
+            25% {
+                transform: translate(-4px, 2px);
+            }
+            50% {
+                transform: translate(4px, -2px);
+            }
+            75% {
+                transform: translate(-2px, 4px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1.6rem;
+            border-radius: 100px;
+            background: rgba(255, 0, 80, 0.15);
+            border: 1px solid rgba(255, 0, 80, 0.25);
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #ff4d7a;
+            margin-bottom: 1.2rem;
+            backdrop-filter: blur(4px);
+            animation: badgeFlicker 2s ease-in-out infinite;
+        }
+
+        @keyframes badgeFlicker {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* ── Headline ── */
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #ff0040, #ff5500, #ff0040);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 40px rgba(255, 0, 80, 0.3);
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* ── Tagline ── */
+        .tension-tagline {
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            font-weight: 700;
+            color: #ff7a9e;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            min-height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+            background: rgba(255, 0, 80, 0.04);
+            border-radius: 100px;
+            padding: 0.25rem 1.5rem;
+            border: 1px solid rgba(255, 0, 80, 0.05);
+            transition: all 0.5s ease;
+        }
+
+        .tension-tagline .blinker {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ff0040;
+            border-radius: 50%;
+            animation: blinkDot 1s step-end infinite;
+            box-shadow: 0 0 20px #ff0040;
+        }
+
+        @keyframes blinkDot {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ── ECG Container ── */
+        .ecg-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 0, 80, 0.08);
+            overflow: hidden;
+            padding: 0.5rem 0.5rem 0.25rem 0.5rem;
+        }
+
+        .ecg-container canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 800 / 150;
+            background: transparent;
+            border-radius: 0.75rem;
+        }
+
+        .ecg-overlay {
+            position: absolute;
+            bottom: 0.6rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ecg-overlay .hr-value {
+            color: #ff4d7a;
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 0, 80, 0.3);
+        }
+
+        /* ── Countdown Grid ── */
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            perspective: 800px;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1.5rem;
+            padding: 1.25rem 0.5rem;
+            border: 1px solid rgba(255, 0, 80, 0.08);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 0, 80, 0.05), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .countdown-item:hover::before {
+            opacity: 1;
+        }
+
+        .countdown-item .number {
+            font-size: clamp(3rem, 7vw, 5.2rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+            color: #fff;
+            text-shadow:
+                0 0 30px rgba(255, 0, 80, 0.2),
+                0 0 60px rgba(255, 0, 80, 0.05);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .countdown-item .number.glitch {
+            animation: textGlitch 0.3s ease-in-out;
+        }
+
+        @keyframes textGlitch {
+            0% {
+                text-shadow: 2px 0 #ff0040, -2px 0 #00ffea;
+                transform: skewX(-2deg);
+            }
+            50% {
+                text-shadow: -3px 0 #ff0040, 3px 0 #00ffea;
+                transform: skewX(2deg);
+            }
+            100% {
+                text-shadow: 0 0 30px rgba(255, 0, 80, 0.4);
+                transform: skewX(0);
+            }
+        }
+
+        .countdown-item .label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.2);
+            margin-top: 0.4rem;
+            transition: color 0.4s ease;
+        }
+
+        .countdown-item.urgent .label {
+            color: #ff4d7a;
+        }
+
+        /* ── Progress Bar ── */
+        .progress-wrap {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #ff0040, #ff5500, #ff0040);
+            background-size: 200% 100%;
+            animation: shimmerProgress 1.5s linear infinite;
+            transition: width 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            box-shadow: 0 0 20px rgba(255, 0, 80, 0.4);
+        }
+
+        @keyframes shimmerProgress {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 200% 0%;
+            }
+        }
+
+        /* ── Footer Info ── */
+        .info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .info .target-date {
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        .info .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.3rem 1.2rem;
+            border-radius: 100px;
+            background: rgba(255, 0, 80, 0.08);
+            border: 1px solid rgba(255, 0, 80, 0.15);
+            color: #ff4d7a;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .info .status .pulse {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff0040;
+            animation: pulseHeart 0.8s ease-in-out infinite;
+            box-shadow: 0 0 15px #ff0040;
+        }
+
+        @keyframes pulseHeart {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.8);
+                opacity: 0.3;
+            }
+        }
+
+        /* ── Expired State ── */
+        .expired .number {
+            color: #fbbf24 !important;
+            text-shadow: 0 0 60px rgba(251, 191, 36, 0.3) !important;
+        }
+
+        .expired .status {
+            background: rgba(251, 191, 36, 0.10) !important;
+            border-color: rgba(251, 191, 36, 0.2) !important;
+            color: #fbbf24 !important;
+        }
+        .expired .status .pulse {
+            background: #fbbf24 !important;
+            box-shadow: 0 0 20px #fbbf24 !important;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .card {
+                padding: 1.5rem 1rem;
+                border-radius: 2rem;
+            }
+
+            .countdown {
+                gap: 0.5rem;
+            }
+
+            .countdown-item {
+                padding: 0.8rem 0.15rem;
+                border-radius: 1rem;
+            }
+
+            .countdown-item .number {
+                font-size: clamp(2.2rem, 12vw, 3.4rem);
+            }
+
+            .tension-tagline {
+                font-size: 0.65rem;
+                padding: 0.2rem 1rem;
+                min-height: 2rem;
+            }
+
+            .badge {
+                font-size: 0.55rem;
+                padding: 0.2rem 1rem;
+            }
+
+            h1 {
+                font-size: clamp(1.6rem, 7vw, 2.4rem);
+            }
+
+            .info {
+                font-size: 0.6rem;
+                gap: 0.4rem;
+            }
+            .info .status {
+                font-size: 0.55rem;
+                padding: 0.2rem 0.8rem;
+            }
+
+            .ecg-container {
+                padding: 0.25rem;
+            }
+            .ecg-overlay {
+                font-size: 0.6rem;
+                bottom: 0.4rem;
+                right: 0.6rem;
+            }
+            .ecg-overlay .hr-value {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .countdown {
+                gap: 0.3rem;
+            }
+            .countdown-item {
+                padding: 0.6rem 0.1rem;
+            }
+            .countdown-item .number {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* ── Accessibility ── */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Tension Orbs -->
+    <div class="orb orb--1" aria-hidden="true"></div>
+    <div class="orb orb--2" aria-hidden="true"></div>
+    <div class="orb orb--3" aria-hidden="true"></div>
+
+    <!-- Sonar Rings -->
+    <div class="sonar" aria-hidden="true"></div>
+
+    <!-- Main Card -->
+    <main class="card" id="mainCard" role="main" aria-labelledby="timer-heading">
+        <div class="badge">⚠️ SECURE COUNTDOWN</div>
+
+        <h1 id="timer-heading">
+            Results <span>Releasing</span>
+        </h1>
+
+        <!-- Dynamic Tension Tagline -->
+        <div class="tension-tagline" id="tagline">
+            <span class="blinker" aria-hidden="true"></span>
+            <span id="taglineText">INITIALIZING...</span>
+        </div>
+
+        <!-- ECG Track -->
+        <div class="ecg-container">
+            <canvas id="ecgCanvas" width="800" height="150"></canvas>
+            <div class="ecg-overlay">
+                <span>❤️ BPM</span>
+                <span class="hr-value" id="bpmDisplay">60</span>
+            </div>
+        </div>
+
+        <!-- Countdown Grid -->
+        <div class="countdown" id="countdown" role="timer" aria-live="polite">
+            <div class="countdown-item" id="itemDays">
+                <span class="number" id="days">00</span>
+                <span class="label">Days</span>
+            </div>
+            <div class="countdown-item" id="itemHours">
+                <span class="number" id="hours">00</span>
+                <span class="label">Hours</span>
+            </div>
+            <div class="countdown-item" id="itemMinutes">
+                <span class="number" id="minutes">00</span>
+                <span class="label">Minutes</span>
+            </div>
+            <div class="countdown-item" id="itemSeconds">
+                <span class="number" id="seconds">00</span>
+                <span class="label">Seconds</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-wrap" aria-hidden="true">
+            <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="info">
+            <span class="target-date" id="fullDateDisplay">🗓️ 2 September 2026 · 10:00 AM</span>
+            <span class="status" id="statusBadge">
+                <span class="pulse" aria-hidden="true"></span>
+                <span id="statusText">ARMED</span>
+            </span>
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── Target: 2 September 2026, 10:00 AM (UTC+5) ───
+            const TARGET = new Date('2026-09-02T10:00:00+05:00');
+
+            // ─── DOM refs ───
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            const progressBar = document.getElementById('progressBar');
+            const statusText = document.getElementById('statusText');
+            const card = document.getElementById('mainCard');
+            const fullDateDisplay = document.getElementById('fullDateDisplay');
+            const taglineText = document.getElementById('taglineText');
+            const bpmDisplay = document.getElementById('bpmDisplay');
+
+            // ─── ECG Canvas ───
+            const canvas = document.getElementById('ecgCanvas');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width; // 800
+            const H = canvas.height; // 150
+            const BUFFER_SIZE = 300;
+            let ecgData = new Array(BUFFER_SIZE).fill(H / 2);
+            let accumulatedPhase = 0;
+
+            // ─── Tension Messages ───
+            const messages = [
+                "🔒 LOCKING TARGET...",
+                "📡 SIGNAL ACQUIRED",
+                "⚡ CALCULATING TRAJECTORY",
+                "🔥 CROSS-CHECKING DATA",
+                "🚀 FINAL COUNTDOWN SEQUENCE",
+                "💀 STANDBY FOR RELEASE",
+                "⏳ MOMENT OF TRUTH",
+                "🎯 READY TO DEPLOY"
+            ];
+            let msgIndex = 0;
+
+            // ─── Format Date ───
+            const dateOpts = { year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: true };
+            const targetDateStr = TARGET.toLocaleDateString('en-US', dateOpts);
+            const targetTimeStr = TARGET.toLocaleTimeString('en-US', timeOpts);
+            fullDateDisplay.textContent = `🗓️ ${targetDateStr} · ${targetTimeStr}`;
+
+            // ─── Helpers ───
+            function pad(n) {
+                return String(n).padStart(2, '0');
+            }
+
+            function getTimeRemaining() {
+                const now = new Date();
+                const diff = TARGET.getTime() - now.getTime();
+                if (diff <= 0) {
+                    return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+                }
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                return { days, hours, minutes, seconds, total: diff };
+            }
+
+            // ─── Calculate BPM based on progress (for display & ECG speed) ───
+            function calculateBPM() {
+                const remaining = getTimeRemaining();
+                if (remaining.total <= 0) return 0;
+                const start = new Date('2025-01-01T00:00:00+05:00');
+                const totalDuration = TARGET.getTime() - start.getTime();
+                const elapsed = TARGET.getTime() - Date.now();
+                let progress = 0;
+                if (totalDuration > 0) {
+                    progress = Math.min(1, Math.max(0, (totalDuration - elapsed) / totalDuration));
+                }
+                // Map progress 0->1 to BPM 60->180
+                const bpm = Math.round(60 + progress * 120);
+                return Math.min(200, bpm);
+            }
+
+            // ─── ECG Waveform ───
+            function ecgWave(phase) {
+                const p = phase % 1.0;
+                let val = 0;
+                if (p < 0.1) {
+                    val = 0.05 * Math.sin((p / 0.1) * Math.PI);
+                } else if (p < 0.2) {
+                    const t = (p - 0.1) / 0.1;
+                    val = -0.4 * Math.sin(t * Math.PI * 2) + 0.3;
+                    if (t < 0.2) val -= 0.15 * (1 - t / 0.2);
+                    if (t > 0.8) val += 0.15 * ((t - 0.8) / 0.2);
+                } else if (p < 0.5) {
+                    const t = (p - 0.2) / 0.3;
+                    val = 0.05 + 0.2 * Math.sin(t * Math.PI) * 0.5;
+                } else if (p < 0.7) {
+                    const t = (p - 0.5) / 0.2;
+                    val = 0.05 + 0.25 * Math.sin(t * Math.PI) * 0.7;
+                } else {
+                    val = 0.02 * Math.sin(p * 10) * 0.1;
+                }
+                const amplitude = H * 0.35;
+                return H / 2 - val * amplitude;
+            }
+
+            // ─── ECG Drawing Loop ───
+            let lastTimestamp = 0;
+
+            function drawECG(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+                lastTimestamp = timestamp;
+
+                const bpm = calculateBPM();
+                bpmDisplay.textContent = bpm;
+
+                const remaining = getTimeRemaining();
+                if (remaining.total <= 0) {
+                    // Flatline
+                    ctx.clearRect(0, 0, W, H);
+                    ctx.beginPath();
+                    ctx.moveTo(0, H / 2);
+                    ctx.lineTo(W, H / 2);
+                    ctx.strokeStyle = '#ff0040';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = '#ff0040';
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    requestAnimationFrame(drawECG);
+                    return;
+                }
+
+                // Update phase
+                const phaseSpeed = bpm / 60;
+                accumulatedPhase += delta * phaseSpeed;
+                if (accumulatedPhase > 1) accumulatedPhase -= Math.floor(accumulatedPhase);
+
+                const y = ecgWave(accumulatedPhase);
+                ecgData.push(y);
+                ecgData.shift();
+
+                // Draw
+                ctx.clearRect(0, 0, W, H);
+
+                // Subtle grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i < W; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, H);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < H; i += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(W, i);
+                    ctx.stroke();
+                }
+
+                // ECG line
+                ctx.beginPath();
+                ctx.strokeStyle = '#ff0040';
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = '#ff0040';
+                ctx.shadowBlur = 20;
+                const step = W / BUFFER_SIZE;
+                for (let i = 0; i < ecgData.length; i++) {
+                    const x = i * step;
+                    const yVal = ecgData[i];
+                    if (i === 0) ctx.moveTo(x, yVal);
+                    else ctx.lineTo(x, yVal);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // R-peak flash
+                const rPhase = 0.15;
+                if (Math.abs(accumulatedPhase - rPhase) < 0.02) {
+                    ctx.fillStyle = 'rgba(255, 0, 64, 0.05)';
+                    ctx.fillRect(0, 0, W, H);
+                }
+
+                requestAnimationFrame(drawECG);
+            }
+
+            // ─── Audio Engine (external files, autoplay) ───
+            // ─── ✏️ CHANGE THESE PATHS TO YOUR OWN AUDIO FILES ───
+            const TICK_SOUND = 'time.mp3'; // e.g., "time.mp3" or "tick.wav"
+            const HEART_SOUND = 'heart.mp3'; // e.g., "heart.mp3" – keep at original 180 BPM
+            // ─────────────────────────────────────────────────────
+
+            let isAudioStarted = false;
+            let tickInterval = null;
+            let isExpired = false;
+
+            // Preload audio objects
+            const tickAudio = new Audio(TICK_SOUND);
+            const heartAudio = new Audio(HEART_SOUND);
+            tickAudio.preload = 'auto';
+            heartAudio.preload = 'auto';
+            heartAudio.loop = true; // loop continuously at its original tempo
+
+            // ─── Set default sound levels: Heart at MAX, Tick at 60% ───
+            tickAudio.volume = 0.6;
+            heartAudio.volume = 1.0; // Maximum loudness
+
+            // ─── Attempt to autoplay ───
+            function startAudio() {
+                if (isAudioStarted) return;
+                // Try playing both
+                try {
+                    const heartPromise = heartAudio.play();
+                    if (heartPromise !== undefined) {
+                        heartPromise.catch(() => {});
+                    }
+                    const tickPromise = tickAudio.play(); // not looped, but we'll start it later
+                    if (tickPromise !== undefined) {
+                        tickPromise.catch(() => {});
+                    }
+                } catch (e) {}
+
+                isAudioStarted = true;
+                // Start tick loop (plays every second)
+                if (tickInterval) clearInterval(tickInterval);
+                tickInterval = setInterval(playTick, 1000);
+            }
+
+            // Function to play tick sound (once per second)
+            function playTick() {
+                if (!isAudioStarted || isExpired) return;
+                try {
+                    const clone = tickAudio.cloneNode();
+                    clone.volume = tickAudio.volume;
+                    clone.play().catch(() => {});
+                } catch (e) { /* ignore */ }
+            }
+
+            // ─── Timer Update ───
+            let lastMinute = -1;
+            let lastSecond = -1;
+
+            function triggerTension(remaining) {
+                const { days, hours, minutes, seconds, total } = remaining;
+                if (minutes !== lastMinute) {
+                    card.classList.add('shake-effect');
+                    setTimeout(() => card.classList.remove('shake-effect'), 300);
+                    lastMinute = minutes;
+                    document.getElementById('minutes').classList.add('glitch');
+                    setTimeout(() => document.getElementById('minutes').classList.remove('glitch'), 400);
+                    msgIndex = (msgIndex + 1) % messages.length;
+                    taglineText.textContent = messages[msgIndex];
+                }
+                if (seconds !== lastSecond) {
+                    const secEl = document.getElementById('seconds');
+                    secEl.style.transition = 'text-shadow 0.1s ease';
+                    secEl.style.textShadow = '0 0 60px rgba(255, 0, 80, 0.6), 0 0 120px rgba(255, 0, 80, 0.2)';
+                    setTimeout(() => {
+                        secEl.style.textShadow = '0 0 30px rgba(255, 0, 80, 0.2), 0 0 60px rgba(255, 0, 80, 0.05)';
+                    }, 100);
+                    lastSecond = seconds;
+                    const totalSecs = total / 1000;
+                    if (totalSecs < 3600 && totalSecs > 0) {
+                        document.querySelectorAll('.countdown-item').forEach(el => el.classList.add('urgent'));
+                    } else {
+                        document.querySelectorAll('.countdown-item').forEach(el => el.classList.remove('urgent'));
+                    }
+                }
+            }
+
+            function updateTimer() {
+                const remaining = getTimeRemaining();
+                const { days, hours, minutes, seconds, total } = remaining;
+
+                daysEl.textContent = pad(days);
+                hoursEl.textContent = pad(hours);
+                minutesEl.textContent = pad(minutes);
+                secondsEl.textContent = pad(seconds);
+
+                const start = new Date('2025-01-01T00:00:00+05:00');
+                const totalDuration = TARGET.getTime() - start.getTime();
+                const elapsed = TARGET.getTime() - Date.now();
+                let progress = 0;
+                if (totalDuration > 0) {
+                    progress = Math.min(100, Math.max(0, ((totalDuration - elapsed) / totalDuration) * 100));
+                }
+                progressBar.style.width = progress + '%';
+                if (progress > 80) {
+                    progressBar.style.background = 'linear-gradient(90deg, #ff0040, #ff5500, #ff0040)';
+                } else if (progress > 50) {
+                    progressBar.style.background = 'linear-gradient(90deg, #ff5500, #ffaa00, #ff5500)';
+                } else {
+                    progressBar.style.background = 'linear-gradient(90deg, #7a00ff, #ff0040, #7a00ff)';
+                }
+
+                triggerTension(remaining);
+
+                // ─── REDIRECT LOGIC ───
+                if (total <= 0) {
+                    statusText.textContent = '🎉 RELEASED!';
+                    card.classList.add('expired');
+                    taglineText.textContent = '✅ REDIRECTING...';
+                    isExpired = true;
+                    if (tickInterval) clearInterval(tickInterval);
+                    try { heartAudio.pause(); } catch (e) {}
+
+                    // Redirect to number.html after a short delay (1 second)
+                    setTimeout(() => {
+                        window.location.href = 'number.html';
+                    }, 1000);
+
+                    return true;
+                } else {
+                    statusText.textContent = 'ARMED';
+                    card.classList.remove('expired');
+                    isExpired = false;
+                    return false;
+                }
+            }
+
+            // ─── Message Rotator ───
+            setInterval(() => {
+                if (!card.classList.contains('expired')) {
+                    msgIndex = (msgIndex + 1) % messages.length;
+                    taglineText.textContent = messages[msgIndex];
+                }
+            }, 4500);
+
+            // ─── Init ───
+            updateTimer();
+            setInterval(updateTimer, 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateTimer();
+            });
+
+            // ─── Start ECG ───
+            requestAnimationFrame(drawECG);
+
+            // ─── Auto‑start audio (with fallback on user interaction) ───
+            startAudio();
+            document.addEventListener('click', function startOnClick() {
+                if (!isAudioStarted) {
+                    startAudio();
+                }
+                document.removeEventListener('click', startOnClick);
+            }, { once: true });
+            document.addEventListener('touchstart', function startOnTouch() {
+                if (!isAudioStarted) {
+                    startAudio();
+                }
+                document.removeEventListener('touchstart', startOnTouch);
+            }, { once: true });
+
+            console.log(`⚡ Tension Countdown with external audio & ECG. Target: ${TARGET.toString()}`);
+            console.log(`📁 Place your audio files: "${TICK_SOUND}" and "${HEART_SOUND}" in the same directory.`);
+            console.log(`🎯 Timer will redirect to number.html when finished.`);
+        })();
+    </script>
+
+</body>
+</html>
