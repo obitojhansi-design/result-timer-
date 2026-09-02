@@ -592,77 +592,6 @@
             clip: rect(0, 0, 0, 0);
             border: 0;
         }
-
-        /* ── New overlay for start interaction ── */
-        .start-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(10, 8, 12, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 1.5rem;
-            cursor: pointer;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .start-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .start-overlay .big-icon {
-            font-size: 4rem;
-            animation: pulseIcon 2s ease-in-out infinite;
-        }
-
-        @keyframes pulseIcon {
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.6;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
-        }
-
-        .start-overlay .message {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: clamp(1.2rem, 3vw, 2rem);
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            text-shadow: 0 0 40px rgba(255, 0, 80, 0.2);
-        }
-
-        .start-overlay .sub-message {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: clamp(0.8rem, 1.5vw, 1rem);
-            color: rgba(255, 255, 255, 0.2);
-            letter-spacing: 0.05em;
-        }
-
-        @media (max-width: 600px) {
-            .start-overlay .big-icon {
-                font-size: 3rem;
-            }
-            .start-overlay .message {
-                font-size: 1rem;
-            }
-            .start-overlay .sub-message {
-                font-size: 0.7rem;
-            }
-        }
     </style>
 </head>
 
@@ -673,13 +602,6 @@
     <div class="orb orb--2" aria-hidden="true"></div>
     <div class="orb orb--3" aria-hidden="true"></div>
     <div class="sonar" aria-hidden="true"></div>
-
-    <!-- Start Overlay (appears on load if audio not started) -->
-    <div class="start-overlay" id="startOverlay">
-        <div class="big-icon">🔊</div>
-        <div class="message">Tap anywhere to start</div>
-        <div class="sub-message">(Audio will play)</div>
-    </div>
 
     <!-- Main Card -->
     <main class="card" id="mainCard" role="main" aria-labelledby="timer-heading">
@@ -752,7 +674,6 @@
             const fullDateDisplay = document.getElementById('fullDateDisplay');
             const taglineText = document.getElementById('taglineText');
             const bpmDisplay = document.getElementById('bpmDisplay');
-            const startOverlay = document.getElementById('startOverlay');
 
             // ─── ECG Canvas ───
             const canvas = document.getElementById('ecgCanvas');
@@ -812,7 +733,8 @@
                 if (totalDuration > 0) {
                     progress = Math.min(1, Math.max(0, (totalDuration - elapsed) / totalDuration));
                 }
-                const bpm = Math.round(60 + progress * 120);
+                // ─── BPM now scales from 60 to 200 ───
+                const bpm = Math.round(60 + progress * 140);
                 return Math.min(200, bpm);
             }
 
@@ -946,7 +868,7 @@
                 tickInterval = setInterval(playTick, 1000);
             }
 
-            // ─── Start audio (called on user interaction) ───
+            // ─── Start audio (called immediately on load) ───
             function startAudio() {
                 if (isAudioStarted) return;
                 try {
@@ -958,9 +880,6 @@
 
                 isAudioStarted = true;
                 startTickLoop();
-
-                // Hide the overlay
-                startOverlay.classList.add('hidden');
             }
 
             // ─── Timer Update ───
@@ -1062,39 +981,29 @@
             // ─── Start ECG ───
             requestAnimationFrame(drawECG);
 
-            // ─── Overlay interaction ───
-            startOverlay.addEventListener('click', startAudio);
-            startOverlay.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                startAudio();
-            });
+            // ─── Attempt to start audio automatically ───
+            startAudio();
 
-            // Also start on any click/tap anywhere if overlay is still present (fallback)
+            // ─── Fallback: if autoplay was blocked, start on first user click ───
             document.addEventListener('click', function startOnClick() {
-                if (!isAudioStarted && !startOverlay.classList.contains('hidden')) {
+                if (!isAudioStarted) {
                     startAudio();
                 }
                 // Remove listener after first click to avoid duplicate
                 document.removeEventListener('click', startOnClick);
             }, { once: true });
 
-            // ─── Try to autoplay (will fail, but catch and show overlay) ───
-            try {
-                const autoPlayPromise = heartAudio.play();
-                if (autoPlayPromise !== undefined) {
-                    autoPlayPromise.then(() => {
-                        // Success! Hide overlay
-                        isAudioStarted = true;
-                        startTickLoop();
-                        startOverlay.classList.add('hidden');
-                    }).catch(() => {
-                        // Autoplay blocked – overlay remains visible
-                    });
+            // Also for touch devices
+            document.addEventListener('touchstart', function startOnTouch() {
+                if (!isAudioStarted) {
+                    startAudio();
                 }
-            } catch (e) {}
+                document.removeEventListener('touchstart', startOnTouch);
+            }, { once: true });
 
             console.log(`⚡ Tension Countdown with external audio & ECG. Target: ${TARGET.toString()}`);
             console.log(`📁 Place your audio files: "${TICK_SOUND}" and "${HEART_SOUND}" in the same directory.`);
+            console.log(`🔥 BPM scales from 60 to 200.`);
             console.log(`🎯 Timer will redirect to number.html when finished.`);
         })();
     </script>
